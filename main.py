@@ -2,31 +2,34 @@ import telebot
 from telebot import types
 from flask import Flask
 from threading import Thread
+import os
 import time
 
-# --- МИНИ-СЕРВЕР ДЛЯ RENDER (чтобы бот не засыпал) ---
+# --- НАСТРОЙКИ ---
+# Получи НОВЫЙ токен у @BotFather, старый не используй!
+TOKEN = 'ТВОЙ_НОВЫЙ_ТОКЕН'
+ADMIN_ID = 6863105636 
+MY_USERNAME = 'MuichiroHGP'
+
+bot = telebot.TeleBot(TOKEN)
 app = Flask('')
 
+# --- МИНИ-СЕРВЕР ДЛЯ RENDER (чтобы не засыпал) ---
 @app.route('/')
 def home():
-    return "Бот-визитка в сети!"
+    return "Бот работает 24/7!"
 
 def run():
-    app.run(host='0.0.0.0', port=8080)
+    # Порт для Render берем из системы
+    port = int(os.environ.get("PORT", 8080))
+    app.run(host='0.0.0.0', port=port)
 
 def keep_alive():
     t = Thread(target=run)
+    t.daemon = True
     t.start()
-# ---------------------------------------------------
 
-# ДАННЫЕ (Твой новый токен и ID)
-TOKEN = '8682627312:AAEDt4klZhzhPI23fUs0LTRm0O9k6dIgU9k'
-ADMIN_ID = 6863105636 
-MY_USERNAME = 'MuichiroHGP' # Твой ник в ТГ без @
-
-bot = telebot.TeleBot(TOKEN)
-
-# Главное меню
+# --- ЛОГИКА БОТА ---
 def main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=1)
     markup.add("💰 Прайс та послуги", "📝 Замовити розробку", "👨‍💻 Написати майстру")
@@ -54,8 +57,7 @@ def handle_text(message):
     
     elif message.text == "👨‍💻 Написати майстру":
         markup = types.InlineKeyboardMarkup()
-        # Прямая ссылка на твой чат
-        btn = types.InlineKeyboardButton("Написати особисто 💬", url=f"tg://resolve?domain={MY_USERNAME}")
+        btn = types.InlineKeyboardButton("Написати особисто 💬", url=f"https://t.me{MY_USERNAME}")
         markup.add(btn)
         bot.send_message(message.chat.id, "Тисніть на кнопку нижче:", reply_markup=markup)
 
@@ -65,7 +67,6 @@ def handle_text(message):
         bot.send_message(message.chat.id, "Який тип бота вас цікавить?", reply_markup=markup)
         bot.register_next_step_handler(message, get_bot_type)
 
-# ЛОГИКА АНКЕТЫ
 def get_bot_type(message):
     bot_type = message.text
     bot.send_message(message.chat.id, "Коротко опишіть вашу ідею чи бізнес:")
@@ -89,13 +90,15 @@ def get_contact(message, bot_type, biz_desc):
               f"🔗 Юзер: {user}")
     bot.send_message(ADMIN_ID, report)
 
+# --- ЗАПУСК ---
 if __name__ == "__main__":
-    keep_alive() # Запуск сервера для Render
+    keep_alive() # Запуск веб-сервера
     print("Бот запущен успешно!")
-    # Бесконечный цикл опроса
+    
     while True:
         try:
-            bot.polling(none_stop=True, interval=0, timeout=20)
+            # skip_pending=True защищает от ошибки 409 Conflict
+            bot.infinity_polling(skip_pending=True, timeout=20, long_polling_timeout=5)
         except Exception as e:
             print(f"Ошибка в работе: {e}")
             time.sleep(5)
