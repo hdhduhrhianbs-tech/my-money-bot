@@ -5,7 +5,7 @@ from threading import Thread
 import os
 import time
 
-# --- НАСТРОЙКИ (Уже обновлено под твой последний скриншот) ---
+# --- НАСТРОЙКИ ---
 TOKEN = '8682627312:AAFo_FhHzHjTkvfN94c-CD0zq0glHR3_mFc'
 ADMIN_ID = 6863105636 
 MY_USERNAME = 'MuichiroHGP'
@@ -13,7 +13,7 @@ MY_USERNAME = 'MuichiroHGP'
 bot = telebot.TeleBot(TOKEN)
 server = Flask(__name__)
 
-# --- СЕРВЕР ДЛЯ RENDER (чтобы не засыпал) ---
+# --- СЕРВЕР ДЛЯ RENDER ---
 @server.route("/")
 def webhook():
     return "Бот активен!", 200
@@ -39,20 +39,13 @@ def start(message):
 @bot.message_handler(func=lambda message: True)
 def handle_text(message):
     if message.text == "💰 Прайс та послуги":
-        prices = (
-            "📊 **Наші пропозиції:**\n\n"
-            "1️⃣ **Бот-візитка** — 800 грн\n"
-            "2️⃣ **Бот-анкета** — 1 500 грн\n"
-            "3️⃣ **Бот-магазин** — від 4 000 грн"
-        )
+        prices = "📊 **Наші пропозиції:**\n\n1️⃣ **Бот-візитка** — 800 грн\n2️⃣ **Бот-анкета** — 1 500 грн\n3️⃣ **Бот-магазин** — від 4 000 грн"
         bot.send_message(message.chat.id, prices, parse_mode='Markdown')
-    
     elif message.text == "👨‍💻 Написати майстру":
         markup = types.InlineKeyboardMarkup()
         btn = types.InlineKeyboardButton("Написати особисто 💬", url=f"https://t.me{MY_USERNAME}")
         markup.add(btn)
         bot.send_message(message.chat.id, "Тисніть на кнопку нижче:", reply_markup=markup)
-
     elif message.text == "📝 Замовити розробку":
         bot.send_message(message.chat.id, "Який тип бота вас цікавить?")
         bot.register_next_step_handler(message, get_bot_type)
@@ -76,8 +69,6 @@ def send_report(message, bot_type, desc):
 # --- ЗАПУСК ---
 if __name__ == "__main__":
     Thread(target=run_server).start()
-    print("Бот запущен успешно!")
-    # infinity_polling с skip_pending=True убирает ошибку 409 Conflict
+    print("Бот запущен!")
     bot.infinity_polling(skip_pending=True)
-    
     
