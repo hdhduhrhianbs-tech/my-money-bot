@@ -5,9 +5,8 @@ from threading import Thread
 import os
 import time
 
-# --- НАСТРОЙКИ ---
-# Получи НОВЫЙ токен у @BotFather, старый не используй!
-TOKEN = 'ТВОЙ_НОВЫЙ_ТОКЕН'
+# --- НАСТРОЙКИ (Твой новый токен и данные) ---
+TOKEN = '8682627312:AAFo_FhHzHjTkvfN94c-CD0zq0glHR3_mFc'
 ADMIN_ID = 6863105636 
 MY_USERNAME = 'MuichiroHGP'
 
@@ -17,10 +16,10 @@ app = Flask('')
 # --- МИНИ-СЕРВЕР ДЛЯ RENDER (чтобы не засыпал) ---
 @app.route('/')
 def home():
-    return "Бот работает 24/7!"
+    return "Бот-визитка активен 24/7!"
 
 def run():
-    # Порт для Render берем из системы
+    # Порт берем из системы Render
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
@@ -57,6 +56,7 @@ def handle_text(message):
     
     elif message.text == "👨‍💻 Написати майстру":
         markup = types.InlineKeyboardMarkup()
+        # Ссылка на твой ТГ
         btn = types.InlineKeyboardButton("Написати особисто 💬", url=f"https://t.me{MY_USERNAME}")
         markup.add(btn)
         bot.send_message(message.chat.id, "Тисніть на кнопку нижче:", reply_markup=markup)
@@ -67,6 +67,7 @@ def handle_text(message):
         bot.send_message(message.chat.id, "Який тип бота вас цікавить?", reply_markup=markup)
         bot.register_next_step_handler(message, get_bot_type)
 
+# ЛОГИКА АНКЕТЫ
 def get_bot_type(message):
     bot_type = message.text
     bot.send_message(message.chat.id, "Коротко опишіть вашу ідею чи бізнес:")
@@ -92,14 +93,14 @@ def get_contact(message, bot_type, biz_desc):
 
 # --- ЗАПУСК ---
 if __name__ == "__main__":
-    keep_alive() # Запуск веб-сервера
-    print("Бот запущен успешно!")
+    keep_alive() # Запуск сервера
+    print("Бот запущен!")
     
     while True:
         try:
-            # skip_pending=True защищает от ошибки 409 Conflict
+            # skip_pending=True убирает старые сообщения и ошибки 409
             bot.infinity_polling(skip_pending=True, timeout=20, long_polling_timeout=5)
         except Exception as e:
-            print(f"Ошибка в работе: {e}")
+            print(f"Сбой: {e}")
             time.sleep(5)
             
